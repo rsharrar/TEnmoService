@@ -1,6 +1,7 @@
 package com.techelevator.tenmo;
 
 import com.techelevator.tenmo.model.AuthenticatedUser;
+import com.techelevator.tenmo.model.User;
 import com.techelevator.tenmo.model.UserCredentials;
 import com.techelevator.tenmo.services.AuthenticationService;
 import com.techelevator.tenmo.services.AuthenticationServiceException;
@@ -72,7 +73,7 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 
 	private void viewCurrentBalance() {
 		// TODO Auto-generated method stub
-		System.out.println(tenmoService.retrieveBalance());
+		System.out.println("Your current account balance is: $" + tenmoService.retrieveBalance());
 		
 	}
 
@@ -88,6 +89,10 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 
 	private void sendBucks() {
 		// TODO Auto-generated method stub
+		displayAllUsers();
+		Integer idChoice = console.getUserInputInteger("Enter ID of user you are sending to (0 to cancel)");
+		if (idChoice == 0) { return; }
+		String amountChoice = console.getUserInput("Enter amount");
 		
 	}
 
@@ -155,5 +160,17 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 		String username = console.getUserInput("Username");
 		String password = console.getUserInput("Password");
 		return new UserCredentials(username, password);
+	}
+
+	private void displayAllUsers() {
+		System.out.println("------------------------------------");
+		System.out.println("Users");
+		System.out.println("ID\t\t\tName");
+		User[] users = tenmoService.retrieveAllUsers();
+
+		for (User user : users) {
+			System.out.println(user.getId() + "\t\t\t" + user.getUsername());
+		}
+		System.out.println("------------------------------------");
 	}
 }
