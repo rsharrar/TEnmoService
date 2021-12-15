@@ -182,7 +182,7 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 		User[] users = tenmoService.retrieveAllUsers();
 
 		for (User user : users) {
-			System.out.println(user.getId() + "\t\t\t" + user.getUsername());
+			System.out.println(user.getId() + "\t\t" + user.getUsername());
 		}
 		System.out.println("------------------------------------");
 	}

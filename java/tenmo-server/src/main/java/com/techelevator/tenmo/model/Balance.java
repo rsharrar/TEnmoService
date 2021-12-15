@@ -6,6 +6,12 @@ public class Balance {
 
     private BigDecimal balance;
 
+    public Balance() {}
+
+    public Balance(BigDecimal balance) {
+        this.balance = balance;
+    }
+
     public BigDecimal getBalance() {
         return balance;
     }
@@ -13,4 +19,5 @@ public class Balance {
     public void setBalance(BigDecimal balance) {
         this.balance = balance;
     }
+
 }

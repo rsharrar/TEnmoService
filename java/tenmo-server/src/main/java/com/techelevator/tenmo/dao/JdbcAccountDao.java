@@ -29,4 +29,20 @@ public class JdbcAccountDao implements AccountDao {
 
         return balance;
     }
+
+    public void updateBalance(BigDecimal amount, int accountId) {
+
+        String sql = "UPDATE accounts " +
+                "SET balance = balance + ? " +
+                "WHERE account_id = ? ";
+        jdbcTemplate.update(sql, amount, accountId);
+    }
+
+    public int getAccountIdByUserId(int userId) {
+
+        String sql = "SELECT account_id FROM accounts " +
+                "WHERE user_id = ? ";
+        Integer accountId = jdbcTemplate.queryForObject(sql, Integer.class, userId);
+        return accountId;
+    }
 }

@@ -8,9 +8,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.sql.DataSource;
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
-public class JdbcTransferDAO {
+public class JdbcTransferDAO implements TransferDAO {
 
     private JdbcTemplate template;
 
@@ -33,6 +35,18 @@ public class JdbcTransferDAO {
         SqlRowSet row = template.queryForRowSet(sql, id);
         if(row.next()) return mapRowsToTransfer(row);
         else return null;
+    }
+
+    public List<Transfer> getTransfersByAccountId(int accountId) {
+        String sql = "SELECT * FROM transfers " +
+                "WHERE account_from = ? OR account_to = ? ";
+        SqlRowSet results = template.queryForRowSet(sql, accountId, accountId);
+
+        List<Transfer> transfers = new ArrayList<>();
+        while (results.next()) {
+            transfers.add(mapRowsToTransfer(results));
+        }
+        return transfers;
     }
 
     public Transfer mapRowsToTransfer(SqlRowSet row){
