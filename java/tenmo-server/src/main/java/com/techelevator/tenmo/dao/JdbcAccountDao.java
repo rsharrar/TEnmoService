@@ -38,6 +38,14 @@ public class JdbcAccountDao implements AccountDao {
         jdbcTemplate.update(sql, amount, accountId);
     }
 
+    public int getUserIdByAccountId(int accountId) {
+
+        String sql = "SELECT user_id FROM accounts " +
+                "WHERE account_id = ? ";
+        Integer userId = jdbcTemplate.queryForObject(sql, Integer.class, accountId);
+        return userId;
+    }
+
     public int getAccountIdByUserId(int userId) {
 
         String sql = "SELECT account_id FROM accounts " +

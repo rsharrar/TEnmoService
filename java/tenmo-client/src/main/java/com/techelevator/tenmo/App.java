@@ -1,9 +1,6 @@
 package com.techelevator.tenmo;
 
-import com.techelevator.tenmo.model.AuthenticatedUser;
-import com.techelevator.tenmo.model.Balance;
-import com.techelevator.tenmo.model.User;
-import com.techelevator.tenmo.model.UserCredentials;
+import com.techelevator.tenmo.model.*;
 import com.techelevator.tenmo.services.AuthenticationService;
 import com.techelevator.tenmo.services.AuthenticationServiceException;
 import com.techelevator.tenmo.services.TenmoService;
@@ -91,7 +88,6 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 	}
 
 	private void sendBucks() {
-		// TODO Auto-generated method stub
 		displayAllUsers();
 		Integer idChoice = console.getUserInputInteger("Enter ID of user you are sending to (0 to cancel)");
 		if (idChoice == 0) { return; }
@@ -101,7 +97,9 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 			amountChoice = console.getUserInput("Enter amount");
 		}
 		Balance transferBalance = new Balance(new BigDecimal(amountChoice));
-		
+		Transfer transfer = new Transfer(new BigDecimal(amountChoice), 2, 2,
+				tenmoService.getAccountIdByUserId(idChoice), tenmoService.getAccountIdByUserId(currentUser.getUser().getId()));
+		tenmoService.createTransfer(transfer);
 	}
 
 	private void requestBucks() {

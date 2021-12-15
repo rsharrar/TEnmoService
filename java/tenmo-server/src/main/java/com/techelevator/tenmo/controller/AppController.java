@@ -49,11 +49,11 @@ public class AppController {
 
     @RequestMapping(path = "/transfer", method = RequestMethod.POST)
     public Transfer createTransfer(@RequestBody Transfer transfer) throws InsufficientFundsException {
-       if (transfer.getTransferAmount().getBalance().compareTo(accountDao.retrieveBalance(transfer.getInitiatingAccount())) > 0) {
+       if (transfer.getTransferAmount().compareTo(accountDao.retrieveBalance(accountDao.getUserIdByAccountId(transfer.getInitiatingAccount()))) > 0){
            throw new InsufficientFundsException();
        }
-        accountDao.updateBalance(transfer.getTransferAmount().getBalance().multiply(new BigDecimal("-1")), transfer.getInitiatingAccount());
-        accountDao.updateBalance(transfer.getTransferAmount().getBalance(), transfer.getRecipientAccount());
+        accountDao.updateBalance(transfer.getTransferAmount().multiply(new BigDecimal("-1")), transfer.getInitiatingAccount());
+        accountDao.updateBalance(transfer.getTransferAmount(), transfer.getRecipientAccount());
         return transferDAO.createTransfer(transfer);
     }
 
@@ -69,5 +69,8 @@ public class AppController {
         int accountId = accountDao.getAccountIdByUserId(userId);
         return transferDAO.getTransfersByAccountId(accountId);
     }
+
+    @RequestMapping(path = "/user/{userId}/account", method = RequestMethod.GET)
+    public int retrieveAccountIdByUserId(@PathVariable int userId){ return accountDao.getAccountIdByUserId(userId); }
 
 }

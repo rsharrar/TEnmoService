@@ -4,12 +4,21 @@ import java.math.BigDecimal;
 
 public class Transfer {
     private BigDecimal transferAmount;
-
     private int transferType;
     private int transferStatus;
     private int recipientAccount;
     private int initiatingAccount;
     private int transferId;
+
+    public Transfer(BigDecimal transferAmount, int transferType, int transferStatus, int recipientAccount, int initiatingAccount) {
+        this.transferAmount = transferAmount;
+        this.transferType = transferType;
+        this.transferStatus = transferStatus;
+        this.recipientAccount = recipientAccount;
+        this.initiatingAccount = initiatingAccount;
+    }
+
+    public Transfer(){ }
 
     public int getRecipientAccount() {
         return recipientAccount;
