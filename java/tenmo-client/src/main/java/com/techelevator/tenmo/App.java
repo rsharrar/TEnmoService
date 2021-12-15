@@ -1,12 +1,15 @@
 package com.techelevator.tenmo;
 
 import com.techelevator.tenmo.model.AuthenticatedUser;
+import com.techelevator.tenmo.model.Balance;
 import com.techelevator.tenmo.model.User;
 import com.techelevator.tenmo.model.UserCredentials;
 import com.techelevator.tenmo.services.AuthenticationService;
 import com.techelevator.tenmo.services.AuthenticationServiceException;
 import com.techelevator.tenmo.services.TenmoService;
 import com.techelevator.view.ConsoleService;
+
+import java.math.BigDecimal;
 
 public class App {
 
@@ -93,12 +96,22 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 		Integer idChoice = console.getUserInputInteger("Enter ID of user you are sending to (0 to cancel)");
 		if (idChoice == 0) { return; }
 		String amountChoice = console.getUserInput("Enter amount");
+		while(!validateCurrencyInput(amountChoice)){
+			System.out.println("Invalid currency input, please try again...");
+			amountChoice = console.getUserInput("Enter amount");
+		}
+		Balance transferBalance = new Balance(new BigDecimal(amountChoice));
 		
 	}
 
 	private void requestBucks() {
 		// TODO Auto-generated method stub
 		
+	}
+
+	private boolean validateCurrencyInput(String input){
+		String amountChoiceCopy = input.replaceAll("[^0-9.]", "");
+		return input.equals(amountChoiceCopy);
 	}
 	
 	private void exitProgram() {
