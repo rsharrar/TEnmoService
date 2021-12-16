@@ -34,11 +34,25 @@ public class TenmoService {
                 makeAuthEntity(), User[].class).getBody();
     }
 
+    public User retrieveUserByAccountId(int accountId) {
+        return restTemplate.exchange(API_BASE_URL + "accounts/" + accountId + "/user", HttpMethod.GET, makeAuthEntity(), User.class).getBody();
+    }
+
     public Transfer createTransfer(Transfer transfer){
         Transfer t = null;
         try{
             t = restTemplate.exchange(API_BASE_URL + "transfer", HttpMethod.POST, makeRequestBody(transfer), Transfer.class).getBody();
         }catch(RestClientResponseException | ResourceAccessException e){
+            System.out.println(e.getMessage());
+        }
+        return t;
+    }
+
+    public Transfer getTransferById(int id) {
+        Transfer t = null;
+        try {
+            t = restTemplate.exchange(API_BASE_URL + "transfer/" + id, HttpMethod.GET, makeAuthEntity(), Transfer.class).getBody();
+        } catch (RestClientResponseException | ResourceAccessException e) {
             System.out.println(e.getMessage());
         }
         return t;
@@ -52,6 +66,10 @@ public class TenmoService {
             System.out.println(e.getMessage());
         }
         return id;
+    }
+
+    public Transfer[] getTransfersByUserId() {
+        return restTemplate.exchange(API_BASE_URL + "transfers", HttpMethod.GET, makeAuthEntity(), Transfer[].class).getBody();
     }
 
     public HttpEntity makeRequestBody(Transfer transfer) {

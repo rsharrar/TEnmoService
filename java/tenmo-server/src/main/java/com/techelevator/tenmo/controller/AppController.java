@@ -47,6 +47,11 @@ public class AppController {
     @RequestMapping(path="/users", method = RequestMethod.GET)
     public List<User> retrieveAllUsers() { return userDao.findAll(); }
 
+    @RequestMapping(path="/accounts/{accountId}/user", method = RequestMethod.GET)
+    public User retrieveUserByAccountId(@PathVariable int accountId) {
+        return accountDao.getUserByAccountId(accountId);
+    }
+
     @RequestMapping(path = "/transfer", method = RequestMethod.POST)
     public Transfer createTransfer(@RequestBody Transfer transfer) throws InsufficientFundsException {
        if (transfer.getTransferAmount().compareTo(accountDao.retrieveBalance(accountDao.getUserIdByAccountId(transfer.getInitiatingAccount()))) > 0){

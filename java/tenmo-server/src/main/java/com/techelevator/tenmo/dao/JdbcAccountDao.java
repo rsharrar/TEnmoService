@@ -1,5 +1,6 @@
 package com.techelevator.tenmo.dao;
 
+import com.techelevator.tenmo.model.User;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
@@ -46,11 +47,31 @@ public class JdbcAccountDao implements AccountDao {
         return userId;
     }
 
+    public User getUserByAccountId(int accountId) {
+
+        String sql = "SELECT * FROM users " +
+                "JOIN accounts ON users.user_id = accounts.user_id " +
+                "WHERE account_id = ? ";
+        SqlRowSet results = jdbcTemplate.queryForRowSet(sql, accountId);
+
+        if (results.next()) {
+            return mapRowsToUser(results);
+        }
+        return null;
+    }
+
     public int getAccountIdByUserId(int userId) {
 
         String sql = "SELECT account_id FROM accounts " +
                 "WHERE user_id = ? ";
         Integer accountId = jdbcTemplate.queryForObject(sql, Integer.class, userId);
         return accountId;
+    }
+
+    private User mapRowsToUser(SqlRowSet rowSet) {
+        User user = new User();
+        user.setId(rowSet.getLong("user_id"));
+        user.setUsername(rowSet.getString("username"));
+        return user;
     }
 }
