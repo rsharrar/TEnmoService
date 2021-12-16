@@ -75,20 +75,13 @@ public class App {
     }
 
     private void viewCurrentBalance() {
-        // TODO Auto-generated method stub
         System.out.println("Your current account balance is: $" + tenmoService.retrieveBalance());
-
     }
 
-    private void viewTransferHistory() {
-        // TODO Auto-generated method stub
-        displayTransfers();
-
-    }
+    private void viewTransferHistory() { displayTransfers(2); }
 
     private void viewPendingRequests() {
-        // TODO Auto-generated method stub
-
+		displayTransfers(1);
     }
 
     private void sendBucks() {
@@ -109,8 +102,20 @@ public class App {
     }
 
     private void requestBucks() {
-        // TODO Auto-generated method stub
-
+        displayAllUsers();
+		Integer idChoice = console.getUserInputInteger("Enter ID of user you are sending to (0 to cancel)");
+		if (idChoice == 0) {
+			return;
+		}
+		String amountChoice = console.getUserInput("Enter amount");
+		while (!validateCurrencyInput(amountChoice)) {
+			System.out.println("Invalid currency input, please try again...");
+			amountChoice = console.getUserInput("Enter amount");
+		}
+		Balance transferBalance = new Balance(new BigDecimal(amountChoice));
+		Transfer transfer = new Transfer(new BigDecimal(amountChoice), 1, 1,
+				tenmoService.getAccountIdByUserId(currentUser.getUser().getId()), tenmoService.getAccountIdByUserId(idChoice));
+		tenmoService.createTransfer(transfer);
     }
 
     private boolean validateCurrencyInput(String input) {
@@ -191,14 +196,13 @@ public class App {
         System.out.println("------------------------------------");
     }
 
-    private void displayTransfers() {
+    private void displayTransfers(int statusId) {
         System.out.println("------------------------------------");
         System.out.println("Transfers");
         System.out.println("ID\t\tFrom/To\t\t\tAmount");
         System.out.println("------------------------------------");
-        Transfer[] transfers = tenmoService.getTransfersByUserId();
+        Transfer[] transfers = tenmoService.getTransfersByUserId(statusId);
         List<Integer> transferIds = new ArrayList<>();
-
         for (Transfer transfer : transfers) {
             String direction = "";
             int accountId = 0;
@@ -213,13 +217,38 @@ public class App {
             System.out.println(transfer.getTransferId() + "\t" + direction + tenmoService.retrieveUserByAccountId(accountId).getUsername() + "\t\t$" + transfer.getTransferAmount());
         }
         System.out.println("------------------------------------");
+        selectTransfer(transferIds, statusId);
+    }
 
-
-        Integer transferId = console.getUserInputInteger("Please enter transfer ID to view details (0 to cancel)");
-        while (!transferIds.contains(transferId) && transferId != 0) {
-            transferId = console.getUserInputInteger("Please enter transfer ID to view details (0 to cancel)");
+    private void selectTransfer(List<Integer> transferIds, int statusId){
+        if(statusId == 2){
+            Integer transferId = console.getUserInputInteger("Please enter transfer ID to view details (0 to cancel)");
+            while (!transferIds.contains(transferId) && transferId != 0) {
+                transferId = console.getUserInputInteger("Please enter transfer ID to view details (0 to cancel)");
+            }
+            displayTransferDetails(transferId);
+        }else if(statusId == 1){
+            Integer transferId = console.getUserInputInteger("Please enter transfer ID to approve or reject(0 to cancel)");
+            while (!transferIds.contains(transferId) && transferId != 0) {
+                transferId = console.getUserInputInteger("Please enter transfer ID to approve or reject (0 to cancel)");
+            }
+            if(transferId == 0) return;
+            displayTransferDetails(transferId);
+            Transfer transferToUpdate = tenmoService.getTransferById(transferId);
+            Integer userApprovalCode = console.getUserInputInteger("Please enter 1 to approve, or 2 to reject (0 to cancel)");
+            while(userApprovalCode > 3 && userApprovalCode < 0){
+                userApprovalCode = console.getUserInputInteger("Please enter 1 to approve, or 2 to reject (0 to cancel)");
+            }
+            if(userApprovalCode == 1){
+                transferToUpdate.setTransferStatus(2);
+                System.out.println(tenmoService.update(transferToUpdate));
+                displayTransferDetails(transferId);
+            }else if(userApprovalCode == 2){
+                transferToUpdate.setTransferStatus(3);
+                System.out.println(tenmoService.update(transferToUpdate));
+                displayTransferDetails(transferId);
+            }
         }
-        displayTransferDetails(transferId);
     }
 
     private void displayTransferDetails(int id) {

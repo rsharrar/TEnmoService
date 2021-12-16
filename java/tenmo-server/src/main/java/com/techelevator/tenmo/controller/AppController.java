@@ -9,6 +9,7 @@ import com.techelevator.tenmo.model.Transfer;
 import com.techelevator.tenmo.model.User;
 import org.hibernate.validator.constraints.pl.REGON;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.relational.core.sql.In;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -54,12 +55,10 @@ public class AppController {
 
     @RequestMapping(path = "/transfer", method = RequestMethod.POST)
     public Transfer createTransfer(@RequestBody Transfer transfer) throws InsufficientFundsException {
-       if (transfer.getTransferAmount().compareTo(accountDao.retrieveBalance(accountDao.getUserIdByAccountId(transfer.getInitiatingAccount()))) > 0){
-           throw new InsufficientFundsException();
-       }
-        accountDao.updateBalance(transfer.getTransferAmount().multiply(new BigDecimal("-1")), transfer.getInitiatingAccount());
-        accountDao.updateBalance(transfer.getTransferAmount(), transfer.getRecipientAccount());
-        return transferDAO.createTransfer(transfer);
+        if(!checkFundsAvailable(transfer)){ throw new InsufficientFundsException(); }
+        if(transfer.getTransferStatus() == 2) updateAccounts(transfer);
+        Transfer createdTransfer = transferDAO.createTransfer(transfer);
+        return createdTransfer;
     }
 
     @RequestMapping(path="/transfer/{id}", method = RequestMethod.GET)
@@ -67,15 +66,40 @@ public class AppController {
         return transferDAO.getTransferById(id);
     }
 
-    @RequestMapping(path = "/transfers", method = RequestMethod.GET)
-    public List<Transfer> retrieveTransfersByUser(Principal principal) {
+    @RequestMapping(path = "/transfers/{id}", method = RequestMethod.GET)
+    public List<Transfer> retrieveTransfersByUser(Principal principal, @PathVariable("id") int statusId) {
         String name = principal.getName();
         int userId = userDao.findIdByUsername(name);
         int accountId = accountDao.getAccountIdByUserId(userId);
-        return transferDAO.getTransfersByAccountId(accountId);
+        return transferDAO.getTransfersByAccountId(accountId, statusId);
     }
 
     @RequestMapping(path = "/user/{userId}/account", method = RequestMethod.GET)
     public int retrieveAccountIdByUserId(@PathVariable int userId){ return accountDao.getAccountIdByUserId(userId); }
 
+    @RequestMapping(path = "/review-request", method = RequestMethod.PUT)
+    public String reviewRequest(@RequestBody Transfer transfer, Principal principal) throws InsufficientFundsException{
+        if(!checkFundsAvailable(transfer)){ throw new InsufficientFundsException(); }
+        String name = principal.getName();
+        int userId = userDao.findIdByUsername(name);
+        int accountId = accountDao.getAccountIdByUserId(userId);
+        if(transfer.getInitiatingAccount() == accountId && transfer.getTransferStatus() == 2){
+            transferDAO.updateTransfer(transfer);
+            updateAccounts(transfer);
+            return "APPROVED!";
+        }else if(transfer.getInitiatingAccount() != accountId){
+            return "You can't approve your own requests...";
+        }
+        return "Rejected.";
+    }
+
+    private boolean checkFundsAvailable(Transfer transfer){
+        if (transfer.getTransferAmount().compareTo(accountDao.retrieveBalance(accountDao.getUserIdByAccountId(transfer.getInitiatingAccount()))) > 0){ return false; }
+        else return true;
+    }
+
+    private void updateAccounts(Transfer transfer){
+        accountDao.updateBalance(transfer.getTransferAmount().multiply(new BigDecimal("-1")), transfer.getInitiatingAccount());
+        accountDao.updateBalance(transfer.getTransferAmount(), transfer.getRecipientAccount());
+    }
 }
