@@ -13,6 +13,7 @@ import org.springframework.data.relational.core.sql.In;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.ArrayList;
@@ -54,7 +55,7 @@ public class AppController {
     }
 
     @RequestMapping(path = "/transfer", method = RequestMethod.POST)
-    public Transfer createTransfer(@RequestBody Transfer transfer) throws InsufficientFundsException {
+    public Transfer createTransfer(@RequestBody @Valid Transfer transfer) throws InsufficientFundsException {
         if(!checkFundsAvailable(transfer)){ throw new InsufficientFundsException(); }
         if(transfer.getTransferStatus() == 2) updateAccounts(transfer);
         Transfer createdTransfer = transferDAO.createTransfer(transfer);
@@ -78,7 +79,7 @@ public class AppController {
     public int retrieveAccountIdByUserId(@PathVariable int userId){ return accountDao.getAccountIdByUserId(userId); }
 
     @RequestMapping(path = "/review-request", method = RequestMethod.PUT)
-    public String reviewRequest(@RequestBody Transfer transfer, Principal principal) throws InsufficientFundsException{
+    public String reviewRequest(@RequestBody @Valid Transfer transfer, Principal principal) throws InsufficientFundsException{
         if(!checkFundsAvailable(transfer)){ throw new InsufficientFundsException(); }
         String name = principal.getName();
         int userId = userDao.findIdByUsername(name);
