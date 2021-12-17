@@ -13,6 +13,16 @@ public class Transfer {
     private int initiatingAccount;
     private int transferId;
 
+    public Transfer(@Positive(message = "Transfer amount must be greater than zero.") BigDecimal transferAmount, int transferType, int transferStatus, int recipientAccount, int initiatingAccount) {
+        this.transferAmount = transferAmount;
+        this.transferType = transferType;
+        this.transferStatus = transferStatus;
+        this.recipientAccount = recipientAccount;
+        this.initiatingAccount = initiatingAccount;
+    }
+
+    public Transfer() {}
+
     public int getRecipientAccount() {
         return recipientAccount;
     }
