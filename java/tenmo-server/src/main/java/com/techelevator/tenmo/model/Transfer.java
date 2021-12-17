@@ -1,8 +1,10 @@
 package com.techelevator.tenmo.model;
 
+import javax.validation.constraints.Positive;
 import java.math.BigDecimal;
 
 public class Transfer {
+    @Positive(message="Transfer amount must be greater than zero.")
     private BigDecimal transferAmount;
 
     private int transferType;
