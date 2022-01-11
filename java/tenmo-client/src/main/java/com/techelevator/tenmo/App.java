@@ -85,7 +85,7 @@ public class App {
     }
 
     private void sendBucks() {
-        displayAllUsers();
+        displayAllOtherUsers();
         Integer idChoice = console.getUserInputInteger("Enter ID of user you are sending to (0 to cancel)");
         if (idChoice == 0) {
             return;
@@ -102,7 +102,7 @@ public class App {
     }
 
     private void requestBucks() {
-        displayAllUsers();
+        displayAllOtherUsers();
 		Integer idChoice = console.getUserInputInteger("Enter ID of user you are sending to (0 to cancel)");
 		if (idChoice == 0) {
 			return;
@@ -195,6 +195,19 @@ public class App {
         }
         System.out.println("------------------------------------");
     }
+
+    private void displayAllOtherUsers() {
+        System.out.println("------------------------------------");
+        System.out.println("Users");
+        System.out.println("ID\t\t\tName");
+        User[] users = tenmoService.retrieveAllUsersExceptSelf();
+
+        for (User user : users) {
+            System.out.println(user.getId() + "\t\t" + user.getUsername());
+        }
+        System.out.println("------------------------------------");
+    }
+
 
     private void displayTransfers(int statusId) {
         System.out.println("------------------------------------");

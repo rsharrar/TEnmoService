@@ -34,6 +34,11 @@ public class TenmoService {
                 makeAuthEntity(), User[].class).getBody();
     }
 
+    public User[] retrieveAllUsersExceptSelf() {
+        return restTemplate.exchange(API_BASE_URL + "other-users", HttpMethod.GET,
+                makeAuthEntity(), User[].class).getBody();
+    }
+
     public User retrieveUserByAccountId(int accountId) {
         return restTemplate.exchange(API_BASE_URL + "accounts/" + accountId + "/user", HttpMethod.GET, makeAuthEntity(), User.class).getBody();
     }

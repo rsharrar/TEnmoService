@@ -49,6 +49,9 @@ public class AppController {
     @RequestMapping(path="/users", method = RequestMethod.GET)
     public List<User> retrieveAllUsers() { return userDao.findAll(); }
 
+    @RequestMapping(path="/other-users", method = RequestMethod.GET)
+    public List<User> retrieveAllUsersExceptSelf(Principal principal) { return userDao.findAll(principal.getName()); }
+
     @RequestMapping(path="/accounts/{accountId}/user", method = RequestMethod.GET)
     public User retrieveUserByAccountId(@PathVariable int accountId) {
         return accountDao.getUserByAccountId(accountId);
