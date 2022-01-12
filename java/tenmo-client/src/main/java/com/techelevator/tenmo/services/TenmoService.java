@@ -48,7 +48,11 @@ public class TenmoService {
         try{
             t = restTemplate.exchange(API_BASE_URL + "transfer", HttpMethod.POST, makeRequestBody(transfer), Transfer.class).getBody();
         }catch(RestClientResponseException | ResourceAccessException e){
-            System.out.println(e.getMessage());
+            if (e.getMessage() != null && e.getMessage().contains("Insufficient funds for transaction.")) {
+                System.out.println("\nYou do not have sufficient funds to complete this transaction");
+            } else {
+                System.out.println("\nThe transfer was unsuccessful. Please try again.");
+            }
         }
         return t;
     }
@@ -58,7 +62,11 @@ public class TenmoService {
         try{
             str = restTemplate.exchange(API_BASE_URL + "review-request", HttpMethod.PUT, makeRequestBody(transfer), String.class).getBody();
         }catch(RestClientResponseException | ResourceAccessException e){
-            System.out.println(e.getMessage());
+            if (e.getMessage() != null && e.getMessage().contains("Insufficient funds for transaction.")) {
+                System.out.println("You do not have sufficient funds to complete this transaction");
+            } else {
+                System.out.println("There was an issue approving the request. Please try again.");
+            }
         }
         return str;
     }
@@ -68,7 +76,7 @@ public class TenmoService {
         try {
             t = restTemplate.exchange(API_BASE_URL + "transfer/" + id, HttpMethod.GET, makeAuthEntity(), Transfer.class).getBody();
         } catch (RestClientResponseException | ResourceAccessException e) {
-            System.out.println(e.getMessage());
+            System.out.println("There was an issue retrieving the details of this transfer.");
         }
         return t;
     }
@@ -78,7 +86,7 @@ public class TenmoService {
         try{
             id = restTemplate.exchange(API_BASE_URL + "user/" + userId + "/account", HttpMethod.GET, makeAuthEntity(), Integer.class).getBody();
         }catch(ResourceAccessException | RestClientResponseException e){
-            System.out.println(e.getMessage());
+            System.out.println("There was an issue retrieving the account ID for this user.");
         }
         return id;
     }

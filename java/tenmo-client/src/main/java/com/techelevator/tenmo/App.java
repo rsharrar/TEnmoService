@@ -10,6 +10,7 @@ import io.cucumber.java.bs.A;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class App {
 
@@ -78,10 +79,10 @@ public class App {
         System.out.println("Your current account balance is: $" + tenmoService.retrieveBalance());
     }
 
-    private void viewTransferHistory() { displayTransfers(2); }
+    private void viewTransferHistory() { displayTransfers(2, "Completed Transfers"); }
 
     private void viewPendingRequests() {
-		displayTransfers(1);
+		displayTransfers(1, "Transfer Requests");
     }
 
     private void sendBucks() {
@@ -95,10 +96,10 @@ public class App {
             System.out.println("Invalid currency input, please try again...");
             amountChoice = console.getUserInput("Enter amount");
         }
-        Balance transferBalance = new Balance(new BigDecimal(amountChoice));
         Transfer transfer = new Transfer(new BigDecimal(amountChoice), 2, 2,
                 tenmoService.getAccountIdByUserId(idChoice), tenmoService.getAccountIdByUserId(currentUser.getUser().getId()));
         tenmoService.createTransfer(transfer);
+
     }
 
     private void requestBucks() {
@@ -109,10 +110,9 @@ public class App {
 		}
 		String amountChoice = console.getUserInput("Enter amount");
 		while (!validateCurrencyInput(amountChoice)) {
-			System.out.println("Invalid currency input, please try again...");
-			amountChoice = console.getUserInput("Enter amount");
+			System.out.println("\nInvalid currency input, please try again...");
+			amountChoice = console.getUserInput("\nEnter amount");
 		}
-		Balance transferBalance = new Balance(new BigDecimal(amountChoice));
 		Transfer transfer = new Transfer(new BigDecimal(amountChoice), 1, 1,
 				tenmoService.getAccountIdByUserId(currentUser.getUser().getId()), tenmoService.getAccountIdByUserId(idChoice));
 		tenmoService.createTransfer(transfer);
@@ -187,70 +187,79 @@ public class App {
     private void displayAllUsers() {
         System.out.println("------------------------------------");
         System.out.println("Users");
-        System.out.println("ID\t\t\tName");
+        System.out.println("-----");
+        System.out.println(String.format("| %-8s | %-15s|","ID", "Name"));
         User[] users = tenmoService.retrieveAllUsers();
 
         for (User user : users) {
-            System.out.println(user.getId() + "\t\t" + user.getUsername());
+            System.out.println(String.format("| %-8s | %-15s|", user.getId(), user.getUsername()));
         }
         System.out.println("------------------------------------");
     }
 
     private void displayAllOtherUsers() {
-        System.out.println("------------------------------------");
-        System.out.println("Users");
-        System.out.println("ID\t\t\tName");
+        System.out.println("----------------------------");
+        System.out.println(String.format("| %-25s|", "Users"));
+        System.out.println("----------------------------");
+        System.out.println(String.format("| %-8s| %-15s|","ID", "Name"));
+        System.out.println("----------------------------");
         User[] users = tenmoService.retrieveAllUsersExceptSelf();
 
         for (User user : users) {
-            System.out.println(user.getId() + "\t\t" + user.getUsername());
+            System.out.println(String.format("| %-8s| %-15s|", user.getId(), user.getUsername()));
         }
-        System.out.println("------------------------------------");
+        System.out.println("----------------------------");
     }
 
 
-    private void displayTransfers(int statusId) {
-        System.out.println("------------------------------------");
-        System.out.println("Transfers");
-        System.out.println("ID\t\tFrom/To\t\t\tAmount");
-        System.out.println("------------------------------------");
+    private void displayTransfers(int statusId, String header) {
         Transfer[] transfers = tenmoService.getTransfersByUserId(statusId);
-        List<Integer> transferIds = new ArrayList<>();
-        for (Transfer transfer : transfers) {
-            String direction = "";
-            int accountId = 0;
-            if (transfer.getInitiatingAccount() == tenmoService.getAccountIdByUserId(currentUser.getUser().getId())) {
-                direction = "To:   ";
-                accountId = transfer.getRecipientAccount();
-            } else {
-                direction = "From: ";
-                accountId = transfer.getInitiatingAccount();
+
+        if (transfers.length == 0) {
+            System.out.println("There are no " + header.toLowerCase() + " to display.");
+        } else {
+            System.out.println("---------------------------------------------");
+            System.out.println(String.format("| %-42s|", header));
+            System.out.println("---------------------------------------------");
+            System.out.println(String.format("| %-8s| %-20s| %-10s|", "ID", "To/From", "Amount"));
+            System.out.println("---------------------------------------------");
+            List<Integer> transferIds = new ArrayList<>();
+            for (Transfer transfer : transfers) {
+                String direction = "";
+                int accountId = 0;
+                if (transfer.getInitiatingAccount() == tenmoService.getAccountIdByUserId(currentUser.getUser().getId())) {
+                    direction = "To:";
+                    accountId = transfer.getRecipientAccount();
+                } else {
+                    direction = "From:";
+                    accountId = transfer.getInitiatingAccount();
+                }
+                transferIds.add(transfer.getTransferId());
+                System.out.println(String.format("| %-8s| %-6s%-14s| %-10s|", transfer.getTransferId(), direction, tenmoService.retrieveUserByAccountId(accountId).getUsername(), "$" + transfer.getTransferAmount()));
             }
-            transferIds.add(transfer.getTransferId());
-            System.out.println(transfer.getTransferId() + "\t" + direction + tenmoService.retrieveUserByAccountId(accountId).getUsername() + "\t\t$" + transfer.getTransferAmount());
+            System.out.println("---------------------------------------------");
+            selectTransfer(transferIds, statusId);
         }
-        System.out.println("------------------------------------");
-        selectTransfer(transferIds, statusId);
     }
 
     private void selectTransfer(List<Integer> transferIds, int statusId){
         if(statusId == 2){
-            Integer transferId = console.getUserInputInteger("Please enter transfer ID to view details (0 to cancel)");
+            Integer transferId = console.getUserInputInteger("\nPlease enter transfer ID to view details (0 to cancel)");
             while (!transferIds.contains(transferId) && transferId != 0) {
-                transferId = console.getUserInputInteger("Please enter transfer ID to view details (0 to cancel)");
+                transferId = console.getUserInputInteger("\nPlease enter transfer ID to view details (0 to cancel)");
             }
             displayTransferDetails(transferId);
         }else if(statusId == 1){
-            Integer transferId = console.getUserInputInteger("Please enter transfer ID to approve or reject(0 to cancel)");
+            Integer transferId = console.getUserInputInteger("\nPlease enter transfer ID to approve or reject (0 to cancel)");
             while (!transferIds.contains(transferId) && transferId != 0) {
-                transferId = console.getUserInputInteger("Please enter transfer ID to approve or reject (0 to cancel)");
+                transferId = console.getUserInputInteger("\nPlease enter transfer ID to approve or reject (0 to cancel)");
             }
             if(transferId == 0) return;
             displayTransferDetails(transferId);
             Transfer transferToUpdate = tenmoService.getTransferById(transferId);
-            Integer userApprovalCode = console.getUserInputInteger("Please enter 1 to approve, or 2 to reject (0 to cancel)");
+            Integer userApprovalCode = console.getUserInputInteger("\nPlease enter 1 to approve, or 2 to reject (0 to cancel)");
             while(userApprovalCode > 3 && userApprovalCode < 0){
-                userApprovalCode = console.getUserInputInteger("Please enter 1 to approve, or 2 to reject (0 to cancel)");
+                userApprovalCode = console.getUserInputInteger("\nPlease enter 1 to approve, or 2 to reject (0 to cancel)");
             }
             if(userApprovalCode == 1){
                 transferToUpdate.setTransferStatus(2);
@@ -267,13 +276,13 @@ public class App {
     private void displayTransferDetails(int id) {
         if (id == 0) return;
         Transfer transfer = tenmoService.getTransferById(id);
-        System.out.println(System.lineSeparator() + "------------------------------------");
-        System.out.println("Transfer Details");
-        System.out.println("------------------------------------");
-        System.out.println("Id: " + transfer.getTransferId());
-        System.out.println("From: " + tenmoService.retrieveUserByAccountId(transfer.getRecipientAccount()).getUsername());
-        System.out.println("To: " + tenmoService.retrieveUserByAccountId(transfer.getInitiatingAccount()).getUsername());
-        System.out.println("Type: " + (transfer.getTransferType() == 1 ? "Request" : "Send"));
+        System.out.println(System.lineSeparator() + "-------------------------------");
+        System.out.println(String.format("| %-28s|", "Transfer Details"));
+        System.out.println("-------------------------------");
+        System.out.println(String.format("| %7s %-20s|", "Id:", transfer.getTransferId()));
+        System.out.println(String.format("| %7s %-20s|", "From:", tenmoService.retrieveUserByAccountId(transfer.getRecipientAccount()).getUsername()));
+        System.out.println(String.format("| %7s %-20s|", "To:", tenmoService.retrieveUserByAccountId(transfer.getInitiatingAccount()).getUsername()));
+        System.out.println(String.format("| %7s %-20s|", "Type:", (transfer.getTransferType() == 1 ? "Request" : "Send")));
         String status = "";
         switch (transfer.getTransferStatus()) {
             case 1:
@@ -286,7 +295,9 @@ public class App {
                 status = "Rejected";
                 break;
         }
-        System.out.println("Status: " + status);
-        System.out.println("Amount: $" + transfer.getTransferAmount());
+        System.out.println(String.format("| %7s %-20s|", "Status:", status));
+        System.out.println(String.format("| %7s%-19s|", "Amount: $", transfer.getTransferAmount()));
+        System.out.println("-------------------------------");
+
     }
 }
